@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>CampusNav - SRM University</title>
+
+  <!-- Leaflet CSS -->
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
+
+  <!-- Leaflet Routing CSS -->
+  <link rel="stylesheet" href="https://unpkg.com/leaflet-routing-machine@3.2.12/dist/leaflet-routing-machine.css"/>
+
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+  <div id="header">
+    <div id="header-left">
+      <h1>🏫 CampusNav</h1>
+      <span id="subtitle">SRM University Delhi-NCR</span>
+    </div>
+    <span id="location-count">Loading locations...</span>
+  </div>
+
+  <div id="controls">
+    <div id="route-controls">
+      <select id="fromLocation">
+        <option value="">📍 Select Starting Point</option>
+      </select>
+      <div id="arrow">→</div>
+      <select id="toLocation">
+        <option value="">🎯 Select Destination</option>
+      </select>
+      <button id="route-btn" onclick="getRoute()">Get Route 🗺️</button>
+      <button id="clear-btn" onclick="clearRoute()">Clear ✖</button>
+      <button id="locate-btn" onclick="showMyLocation()">📍 My Location</button>
+    </div>
+  </div>
+
+  <div id="info-box" style="display:none;">
+    <div id="route-summary">
+      <span id="from-info" class="route-point from"></span>
+      <span class="route-arrow">→</span>
+      <span id="to-info" class="route-point to"></span>
+    </div>
+    <div id="route-stats">
+      <span id="distance-info"></span>
+      <span id="time-info"></span>
+    </div>
+  </div>
+
+  <div id="legend">
+    <div class="legend-title">📌 Legend</div>
+    <div class="legend-item"><span class="dot" style="background:#4CAF50"></span> Entrance</div>
+    <div class="legend-item"><span class="dot" style="background:#2196F3"></span> Department</div>
+    <div class="legend-item"><span class="dot" style="background:#9C27B0"></span> Library</div>
+    <div class="legend-item"><span class="dot" style="background:#FF9800"></span> Cafeteria</div>
+    <div class="legend-item"><span class="dot" style="background:#F44336"></span> Admin</div>
+    <div class="legend-item"><span class="dot" style="background:#00BCD4"></span> Hostel</div>
+    <div class="legend-item"><span class="dot" style="background:#8BC34A"></span> Sports</div>
+    <div class="legend-item"><span class="dot" style="background:#FF5722"></span> Facility</div>
+  </div>
+
+  <div id="map"></div>
+
+  <!-- Leaflet JS -->
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+
+  <!-- Leaflet Routing Machine -->
+  <script src="https://unpkg.com/leaflet-routing-machine@3.2.12/dist/leaflet-routing-machine.js"></script>
+
+  <script src="map.js"></script>
+</body>
+</html>

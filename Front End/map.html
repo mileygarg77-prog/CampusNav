@@ -1,0 +1,381 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>CampusNav - Map</title>
+  <link rel="stylesheet" href="style.css"/>
+  <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;600;700&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet"/>
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
+  <link rel="stylesheet" href="https://unpkg.com/leaflet-routing-machine@3.2.12/dist/leaflet-routing-machine.css"/>
+  <style>
+    .from-row {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      margin-bottom: 12px;
+    }
+    .from-row label {
+      font-size: 0.8rem;
+      font-weight: 600;
+      color: #6b7280;
+      white-space: nowrap;
+    }
+    .from-row select {
+      flex: 1;
+      padding: 6px 10px;
+      border: 1.5px solid #e2e8f0;
+      border-radius: 8px;
+      font-size: 0.82rem;
+      font-family: 'DM Sans', sans-serif;
+      background: #f4f6fb;
+      color: #1c2333;
+      cursor: pointer;
+    }
+    .from-row select:focus { outline: none; border-color: #1a6fc4; }
+    .campus-label {
+      background: #1a6fc4;
+      color: white;
+      border: none;
+      border-radius: 6px;
+      font-size: 0.8rem;
+      font-weight: 600;
+      padding: 4px 10px;
+    }
+    /* Dark mode overrides for from-row select */
+    body.dark .from-row select {
+      background: #1e293b;
+      color: #e2e8f0;
+      border-color: #334155;
+    }
+    body.dark .from-row label { color: #94a3b8; }
+  </style>
+</head>
+<body class="map-page">
+
+  <!-- NAVBAR -->
+  <nav class="navbar">
+    <div class="nav-logo"><a href="index.html">🗺️ CampusNav</a></div>
+    <div class="nav-links">
+      <a href="index.html">Home</a>
+      <a href="map.html" class="active">Map</a>
+      <span id="nav-user" class="nav-user hidden"></span>
+      <button id="logout-btn" class="btn-logout hidden" onclick="logoutUser()">Logout</button>
+      <!-- Dark mode toggle -->
+      <button class="dark-toggle" onclick="toggleDark()" title="Toggle dark mode">🌙</button>
+    </div>
+  </nav>
+
+  <!-- MAIN LAYOUT -->
+  <div class="map-layout">
+
+    <!-- LEFT PANEL -->
+    <div class="left-panel">
+
+      <div class="search-box">
+        <input type="text" id="search-input"
+          placeholder="🔍 Search building, lab, cafeteria..."
+          oninput="searchLocations()"/>
+      </div>
+
+      <div class="category-btns">
+        <button class="cat-btn active" onclick="filterCategory('all', event)">All</button>
+        <button class="cat-btn" onclick="filterCategory('library', event)">📚 Library</button>
+        <button class="cat-btn" onclick="filterCategory('department', event)">🏫 Dept</button>
+        <button class="cat-btn" onclick="filterCategory('cafeteria', event)">🍽️ Cafeteria</button>
+        <button class="cat-btn" onclick="filterCategory('administrative', event)">🏢 Admin</button>
+        <button class="cat-btn" onclick="filterCategory('hostel', event)">🏠 Hostel</button>
+        <button class="cat-btn" onclick="filterCategory('sports', event)">⚽ Sports</button>
+        <button class="cat-btn" onclick="filterCategory('facility', event)">🏪 Facility</button>
+      </div>
+
+      <div class="panel-section">
+        <h3>📍 Campus Locations</h3>
+        <div id="locations-list">
+          <p class="loading-text">Loading locations...</p>
+        </div>
+      </div>
+
+      <div class="panel-section" id="saved-section">
+        <h3>⭐ My Saved Places</h3>
+        <div id="saved-list">
+          <p class="muted-text">Login to see saved places</p>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- THE MAP -->
+    <div id="map"></div>
+
+    <!-- INFO POPUP -->
+    <div id="info-popup" class="info-popup hidden">
+      <button class="close-popup" onclick="closePopup()">✕</button>
+      <h3 id="popup-name">Location Name</h3>
+      <p id="popup-category" class="popup-cat"></p>
+      <p id="popup-desc"></p>
+      <div class="from-row">
+        <label>From:</label>
+        <select id="from-select">
+          <option value="maingate">🚪 Main Gate (Default)</option>
+        </select>
+      </div>
+      <div class="popup-actions">
+        <button class="btn-primary small" onclick="getDirections()">🧭 Directions</button>
+        <button class="btn-outline small" id="save-btn" onclick="saveLocation()">⭐ Save</button>
+      </div>
+      <div id="travel-time" class="travel-time hidden"></div>
+    </div>
+
+  </div>
+
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+  <script src="https://unpkg.com/leaflet-routing-machine@3.2.12/dist/leaflet-routing-machine.js"></script>
+  <script src="script.js"></script>
+
+<!-- FLOOR MAP OVERLAY -->
+<div id="floor-overlay" class="floor-overlay hidden" onclick="closeFloorMap(event)">
+  <div class="floor-modal" onclick="event.stopPropagation()">
+
+    <div class="floor-header">
+      <div class="floor-header-left">
+        <span class="floor-building-icon">🏫</span>
+        <div>
+          <h2 class="floor-title">Engineering Block</h2>
+          <p class="floor-subtitle">5th Floor — Interactive Map</p>
+        </div>
+      </div>
+      <div class="floor-header-right">
+        <div class="floor-tabs">
+          <button class="floor-tab active" onclick="switchFloor(5,this)">5th</button>
+          <button class="floor-tab disabled" title="Coming soon">4th</button>
+          <button class="floor-tab disabled" title="Coming soon">3rd</button>
+          <button class="floor-tab disabled" title="Coming soon">2nd</button>
+          <button class="floor-tab disabled" title="Coming soon">GF</button>
+        </div>
+        <button class="floor-close" onclick="closeFloorMapBtn()">&#x2715;</button>
+      </div>
+    </div>
+
+    <div class="floor-legend">
+      <span class="legend-item"><span class="legend-dot lab"></span>Computer Lab</span>
+      <span class="legend-item"><span class="legend-dot staff"></span>Staff / HOD Room</span>
+      <span class="legend-item"><span class="legend-dot facility"></span>Facility / Lift</span>
+      <span class="legend-item"><span class="legend-dot corridor"></span>Corridor / OTS</span>
+      <span class="legend-item"><span class="legend-dot facility"></span>Lift (East)</span>
+    </div>
+
+    <div class="floor-plan-wrapper">
+      <svg id="floor-svg" viewBox="0 0 1080 720" xmlns="http://www.w3.org/2000/svg" class="floor-svg">
+
+        <rect width="1080" height="720" fill="#f8fafc" rx="6"/>
+        <rect x="16" y="16" width="1048" height="688" fill="none" stroke="#334155" stroke-width="3" rx="3"/>
+
+        <!-- TOP ROW: Labs 01-04 -->
+        <rect x="16"  y="16" width="200" height="108" class="room lab" data-room="01"/>
+        <text x="116" y="62"  class="room-label">Lab 01</text>
+        <text x="116" y="79"  class="room-sublabel">Computer Lab</text>
+
+        <rect x="216" y="16" width="200" height="108" class="room lab" data-room="02"/>
+        <text x="316" y="62"  class="room-label">Lab 02</text>
+        <text x="316" y="79"  class="room-sublabel">Computer Lab</text>
+
+        <rect x="416" y="16" width="200" height="108" class="room lab" data-room="03"/>
+        <text x="516" y="62"  class="room-label">Lab 03</text>
+        <text x="516" y="79"  class="room-sublabel">Computer Lab</text>
+
+        <rect x="616" y="16" width="448" height="108" class="room lab" data-room="04"/>
+        <text x="840" y="62"  class="room-label">Lab 04</text>
+        <text x="840" y="79"  class="room-sublabel">Computer Lab</text>
+
+        <!-- TOP CORRIDOR -->
+        <rect x="16" y="124" width="1048" height="44" class="room corridor"/>
+        <text x="540" y="150" class="corridor-label">4.8m Wide Corridor</text>
+
+        <!-- LIFT LOBBY (top-left) -->
+        <rect x="16" y="168" width="138" height="115" class="room facility" data-room="lift-w"/>
+        <rect x="20" y="172" width="44" height="17" fill="#16a34a" rx="2"/>
+        <text x="42"  y="183" class="exit-text">EXIT</text>
+        <text x="85"  y="207" style="font-size:17px;text-anchor:middle;fill:#1c2333">&#x1F697;</text>
+        <text x="85"  y="224" class="room-sublabel">Lift Lobby</text>
+        <rect x="22" y="232" width="28" height="36" fill="#bbf7d0" stroke="#16a34a" stroke-width="1" rx="2"/>
+        <text x="36" y="254" style="font-size:8px;text-anchor:middle;fill:#166534">L1</text>
+        <rect x="54" y="232" width="28" height="36" fill="#bbf7d0" stroke="#16a34a" stroke-width="1" rx="2"/>
+        <text x="68" y="254" style="font-size:8px;text-anchor:middle;fill:#166534">L2</text>
+        <rect x="86" y="232" width="28" height="36" fill="#bbf7d0" stroke="#16a34a" stroke-width="1" rx="2"/>
+        <text x="100" y="254" style="font-size:8px;text-anchor:middle;fill:#166534">L3</text>
+
+        <!-- LOBBY / STAIRS -->
+        <rect x="154" y="168" width="116" height="115" class="room facility" data-room="lobby"/>
+        <text x="212" y="218" class="room-label">Lobby /</text>
+        <text x="212" y="235" class="room-label">Stairs</text>
+
+        <!-- 2.5m VERTICAL CORRIDOR -->
+        <rect x="270" y="168" width="28" height="500" class="room corridor"/>
+        <text x="284" y="428" class="corridor-label-v">2.5m Corridor</text>
+
+        <!-- STAFF ROOMS: top row L→R: Male W/C | Sr1 | Sr2 | Sr3 | Sr4 | HOD -->
+        <!-- Each room ~74px wide, gap of 8px between top and bottom rows -->
+        <!-- Top staff row y=168, height=130 -->
+        <rect x="16"  y="283" width="42"  height="130" class="room facility" data-room="mwc"/>
+        <text x="37"  y="335" class="room-label-sm" style="font-size:8px">Male</text>
+        <text x="37"  y="348" class="room-label-sm" style="font-size:8px">Staff</text>
+        <text x="37"  y="361" class="room-label-sm" style="font-size:8px">W/C</text>
+
+        <rect x="58"  y="283" width="44"  height="130" class="room staff" data-room="sr01"/>
+        <text x="80"  y="341" class="room-label-sm">Staff</text>
+        <text x="80"  y="355" class="room-label-sm">01</text>
+
+        <rect x="102" y="283" width="44"  height="130" class="room staff" data-room="sr02"/>
+        <text x="124" y="341" class="room-label-sm">Staff</text>
+        <text x="124" y="355" class="room-label-sm">02</text>
+
+        <rect x="146" y="283" width="44"  height="130" class="room staff" data-room="sr03"/>
+        <text x="168" y="341" class="room-label-sm">Staff</text>
+        <text x="168" y="355" class="room-label-sm">03</text>
+
+        <rect x="190" y="283" width="44"  height="130" class="room staff" data-room="sr04"/>
+        <text x="212" y="341" class="room-label-sm">Staff</text>
+        <text x="212" y="355" class="room-label-sm">04</text>
+
+        <rect x="234" y="283" width="36"  height="130" class="room staff" data-room="hod"/>
+        <text x="252" y="338" class="room-label-sm" style="font-size:8px">HOD</text>
+        <text x="252" y="351" class="room-label-sm" style="font-size:8px">Room</text>
+
+        <!-- Walking gap between staff rows -->
+        <rect x="16" y="413" width="254" height="12" class="room corridor"/>
+
+        <!-- Bottom staff row L→R: Female W/C | Sr8 | Sr7 | Sr6 | Sr5 | Hub -->
+        <rect x="16"  y="425" width="42"  height="130" class="room facility" data-room="fwc"/>
+        <text x="37"  y="474" class="room-label-sm" style="font-size:8px">Fem.</text>
+        <text x="37"  y="487" class="room-label-sm" style="font-size:8px">Staff</text>
+        <text x="37"  y="500" class="room-label-sm" style="font-size:8px">W/C</text>
+
+        <rect x="58"  y="425" width="44"  height="130" class="room staff" data-room="sr08"/>
+        <text x="80"  y="483" class="room-label-sm">Staff</text>
+        <text x="80"  y="497" class="room-label-sm">08</text>
+
+        <rect x="102" y="425" width="44"  height="130" class="room staff" data-room="sr07"/>
+        <text x="124" y="483" class="room-label-sm">Staff</text>
+        <text x="124" y="497" class="room-label-sm">07</text>
+
+        <rect x="146" y="425" width="44"  height="130" class="room staff" data-room="sr06"/>
+        <text x="168" y="483" class="room-label-sm">Staff</text>
+        <text x="168" y="497" class="room-label-sm">06</text>
+
+        <rect x="190" y="425" width="44"  height="130" class="room staff" data-room="sr05"/>
+        <text x="212" y="483" class="room-label-sm">Staff</text>
+        <text x="212" y="497" class="room-label-sm">05</text>
+
+        <rect x="234" y="425" width="36"  height="130" class="room staff" data-room="hub"/>
+        <text x="252" y="480" class="room-label-sm" style="font-size:8px">Hub</text>
+        <text x="252" y="493" class="room-label-sm" style="font-size:8px">Room</text>
+
+        <!-- OTS below staff rooms (bottom-left open area) -->
+        <rect x="16" y="555" width="254" height="113" class="room ots"/>
+        <line x1="16" y1="555" x2="270" y2="668" stroke="#86efac" stroke-width="1.2" stroke-dasharray="7,5"/>
+        <line x1="270" y1="555" x2="16" y2="668" stroke="#86efac" stroke-width="1.2" stroke-dasharray="7,5"/>
+        <text x="143" y="606" class="room-label" style="fill:#4ade80;font-size:13px">O.T.S</text>
+        <text x="143" y="622" class="room-sublabel" style="fill:#6ee7b7">Open to Sky</text>
+
+        <!-- Labs 05, 06, 07 (LEFT of OTS — swapped position) -->
+        <rect x="298" y="168" width="190" height="133" class="room lab" data-room="05"/>
+        <text x="393" y="227" class="room-label">Lab 05</text>
+        <text x="393" y="244" class="room-sublabel">Computer Lab</text>
+
+        <rect x="298" y="301" width="190" height="133" class="room lab" data-room="06"/>
+        <text x="393" y="360" class="room-label">Lab 06</text>
+        <text x="393" y="377" class="room-sublabel">Computer Lab</text>
+
+        <rect x="298" y="434" width="190" height="134" class="room lab" data-room="07"/>
+        <text x="393" y="493" class="room-label">Lab 07</text>
+        <text x="393" y="510" class="room-sublabel">Computer Lab</text>
+
+        <!-- LARGE OTS (RIGHT of Labs 05-07) -->
+        <rect x="488" y="168" width="338" height="400" class="room ots"/>
+        <line x1="488" y1="168" x2="826" y2="568" stroke="#86efac" stroke-width="1.5" stroke-dasharray="9,6"/>
+        <line x1="826" y1="168" x2="488" y2="568" stroke="#86efac" stroke-width="1.5" stroke-dasharray="9,6"/>
+        <text x="657" y="358" class="room-label" style="fill:#4ade80;font-size:18px">O.T.S</text>
+        <text x="657" y="380" class="room-sublabel" style="fill:#6ee7b7;font-size:11px">Open to Sky</text>
+
+        <!-- GAP / CORRIDOR between OTS and Lab 08/09 -->
+        <rect x="826" y="168" width="44" height="400" class="room corridor"/>
+        <text x="848" y="378" class="corridor-label-v">Corridor</text>
+
+        <!-- ANGLED LIFT (in the gap, slightly tilted, with EXIT) -->
+        <g transform="translate(857,490) rotate(-20)">
+          <rect x="-52" y="-80" width="104" height="130" fill="#d1fae5" stroke="#16a34a" stroke-width="2" rx="4"
+                data-room="lift-r" style="cursor:pointer"/>
+          <rect x="-38" y="-65" width="28" height="40" fill="#bbf7d0" stroke="#16a34a" stroke-width="1" rx="2"/>
+          <text x="-24" y="-40" style="font-size:7px;text-anchor:middle;fill:#166534">L1</text>
+          <rect x="-5"  y="-65" width="28" height="40" fill="#bbf7d0" stroke="#16a34a" stroke-width="1" rx="2"/>
+          <text x="9"   y="-40" style="font-size:7px;text-anchor:middle;fill:#166534">L2</text>
+          <rect x="13"  y="-10" width="28" height="40" fill="#bbf7d0" stroke="#16a34a" stroke-width="1" rx="2"/>
+          <text x="27"  y="15"  style="font-size:7px;text-anchor:middle;fill:#166534">L3</text>
+          <text x="0"   y="38"  style="font-size:9px;font-weight:700;text-anchor:middle;fill:#166534">&#x1F6D7;</text>
+        </g>
+        <!-- EXIT sign near lift -->
+        <rect x="830" y="430" width="40" height="16" fill="#16a34a" rx="2"/>
+        <text x="850" y="441" class="exit-text">EXIT</text>
+
+        <!-- FAR RIGHT: Lab 08 (top) and Lab 09 (bottom) only -->
+        <rect x="870" y="168" width="194" height="200" class="room lab" data-room="08"/>
+        <text x="967" y="262" class="room-label">Lab 08</text>
+        <text x="967" y="279" class="room-sublabel">Computer Lab</text>
+
+        <rect x="870" y="368" width="194" height="200" class="room lab" data-room="09"/>
+        <text x="967" y="462" class="room-label">Lab 09</text>
+        <text x="967" y="479" class="room-sublabel">Computer Lab</text>
+
+        <!-- BOTTOM CORRIDOR (taller to give space for lift overlap) -->
+        <rect x="16" y="668" width="1048" height="52" class="room corridor"/>
+        <text x="540" y="690" class="corridor-label">4.8m Wide Corridor</text>
+
+        <!-- BOTTOM ROW L→R: WC | Conf. | Lab 12 | Lab 11 | Lab 10 -->
+        <rect x="16"  y="572" width="126" height="96" class="room facility" data-room="wc"/>
+        <text x="79"  y="615" class="room-label">&#x1F6BB; WC</text>
+        <text x="79"  y="632" class="room-sublabel">Toilet / Pantry</text>
+
+        <rect x="142" y="572" width="156" height="96" class="room facility" data-room="conf"/>
+        <text x="220" y="613" class="room-label">&#x1F4CB; Conf.</text>
+        <text x="220" y="630" class="room-sublabel">Room (~20 seats)</text>
+
+        <rect x="298" y="572" width="210" height="96" class="room lab" data-room="12"/>
+        <text x="403" y="613" class="room-label">Lab 12</text>
+        <text x="403" y="630" class="room-sublabel">Computer Lab</text>
+
+        <rect x="508" y="572" width="210" height="96" class="room lab" data-room="11"/>
+        <text x="613" y="613" class="room-label">Lab 11</text>
+        <text x="613" y="630" class="room-sublabel">Computer Lab</text>
+
+        <rect x="718" y="572" width="346" height="96" class="room lab" data-room="10"/>
+        <text x="891" y="613" class="room-label">Lab 10</text>
+        <text x="891" y="630" class="room-sublabel">Computer Lab</text>
+
+        <!-- Compass -->
+        <g transform="translate(1050,46)">
+          <circle cx="0" cy="0" r="22" fill="white" stroke="#cbd5e1" stroke-width="1.5"/>
+          <polygon points="0,-16 6,6 0,2 -6,6" fill="#1a6fc4"/>
+          <polygon points="0,16 6,-6 0,-2 -6,-6" fill="#cbd5e1"/>
+          <text x="0" y="-20" class="compass-n">N</text>
+        </g>
+
+        <text x="540" y="714" class="floor-watermark">5th Floor &middot; Engineering Block &middot; SRM University Delhi-NCR Sonepat</text>
+
+      </svg>
+    </div>
+
+    <div id="room-info" class="room-info hidden">
+      <span id="room-info-icon">&#x1F5A5;&#xFE0F;</span>
+      <div>
+        <strong id="room-info-name">Lab 01</strong>
+        <span id="room-info-type">Computer Lab</span>
+      </div>
+      <button onclick="document.getElementById('room-info').classList.add('hidden')">&#x2715;</button>
+    </div>
+
+  </div>
+</div>
+
+</body>
+</html>

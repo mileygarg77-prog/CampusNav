@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>CampusNav</title>
+  <link rel="stylesheet" href="style.css" />
+  <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;600;700&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet"/>
+</head>
+<body>
+
+  <!-- NAVBAR -->
+  <nav class="navbar">
+    <div class="nav-logo">🗺️ CampusNav</div>
+    <div class="nav-links">
+      <a href="index.html" class="active">Home</a>
+      <a href="map.html">Map</a>
+      <!-- Dark mode toggle -->
+      <button class="dark-toggle" onclick="toggleDark()" title="Toggle dark mode">🌙</button>
+    </div>
+  </nav>
+
+  <!-- HERO -->
+  <section class="hero">
+    <div class="hero-text">
+      <h1>Navigate Our Campus<br/><span>Smarter & Faster</span></h1>
+      <p>Find any building, lab, cafeteria, or office on SRM University Delhi-NCR campus — instantly.</p>
+      <a href="map.html" class="btn-primary">Open Campus Map 🗺️</a>
+    </div>
+    <div class="hero-image">
+      <div class="map-preview-box">
+        <div class="pin">📍</div>
+        <p>SRM University<br/>Delhi-NCR, Sonepat</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- FEATURES -->
+  <section class="features">
+    <h2>What CampusNav Offers</h2>
+    <div class="feature-cards">
+      <div class="card">
+        <div class="card-icon">🔍</div>
+        <h3>Search Locations</h3>
+        <p>Search for any building, lab, department, or facility on campus.</p>
+      </div>
+      <div class="card">
+        <div class="card-icon">🧭</div>
+        <h3>Get Directions</h3>
+        <p>Get walking directions from any campus location to your destination.</p>
+      </div>
+      <div class="card">
+        <div class="card-icon">⭐</div>
+        <h3>Save Favourites</h3>
+        <p>Save frequently visited places for quick access anytime.</p>
+      </div>
+      <div class="card">
+        <div class="card-icon">🏷️</div>
+        <h3>Browse by Category</h3>
+        <p>Filter by Library, Cafeteria, Department, Sports, and more.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- AUTH -->
+  <section class="auth-section" id="auth">
+    <div class="auth-box">
+      <div class="auth-tabs">
+        <button class="tab-btn active" onclick="showTab('login')">Login</button>
+        <button class="tab-btn" onclick="showTab('register')">Register</button>
+      </div>
+
+      <div id="login-form" class="auth-form">
+        <h2>Welcome Back 👋</h2>
+        <p class="auth-sub">Login to save your favourite locations</p>
+        <div class="input-group">
+          <label>Email</label>
+          <input type="email" id="login-email" placeholder="john@srm.com" />
+        </div>
+        <div class="input-group">
+          <label>Password</label>
+          <input type="password" id="login-password" placeholder="Your password" />
+        </div>
+        <div id="login-msg" class="msg-box"></div>
+        <button class="btn-primary full-width" onclick="loginUser()">Login</button>
+        <p class="switch-text">Don't have an account? <a onclick="showTab('register')">Register here</a></p>
+      </div>
+
+      <div id="register-form" class="auth-form hidden">
+        <h2>Create Account 🎓</h2>
+        <p class="auth-sub">Join CampusNav to get full access</p>
+        <div class="input-group">
+          <label>Full Name</label>
+          <input type="text" id="reg-name" placeholder="John Doe" />
+        </div>
+        <div class="input-group">
+          <label>Email</label>
+          <input type="email" id="reg-email" placeholder="john@srm.com" />
+        </div>
+        <div class="input-group">
+          <label>Password</label>
+          <input type="password" id="reg-password" placeholder="Create a password" />
+        </div>
+        <div id="register-msg" class="msg-box"></div>
+        <button class="btn-primary full-width" onclick="registerUser()">Register</button>
+        <p class="switch-text">Already have an account? <a onclick="showTab('login')">Login here</a></p>
+      </div>
+    </div>
+  </section>
+
+  <!-- FOOTER -->
+  <footer class="footer">
+    <p>🗺️ CampusNav — SRM University Delhi-NCR, Sonepat</p>
+    <p>B.Tech CSE (Cyber Security) | 2nd Year Project</p>
+  </footer>
+
+  <script src="script.js"></script>
+</body>
+</html>

@@ -1,0 +1,237 @@
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+  font-family: Arial, sans-serif;
+}
+
+body {
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
+  background: #f0f4f8;
+}
+
+#header {
+  background: linear-gradient(135deg, #1F4E79, #2E75B6);
+  color: white;
+  padding: 10px 20px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.3);
+}
+
+#header-left {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+#header h1 {
+  font-size: 20px;
+  font-weight: bold;
+}
+
+#subtitle {
+  font-size: 13px;
+  opacity: 0.85;
+  border-left: 1px solid rgba(255,255,255,0.4);
+  padding-left: 10px;
+}
+
+#location-count {
+  font-size: 12px;
+  background: rgba(255,255,255,0.2);
+  padding: 4px 10px;
+  border-radius: 20px;
+}
+
+#controls {
+  background: white;
+  padding: 10px 16px;
+  border-bottom: 1px solid #ddd;
+  box-shadow: 0 1px 4px rgba(0,0,0,0.1);
+}
+
+#route-controls {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  flex-wrap: wrap;
+}
+
+#route-controls select {
+  padding: 8px 12px;
+  border: 2px solid #e0e0e0;
+  border-radius: 8px;
+  font-size: 13px;
+  flex: 1;
+  min-width: 180px;
+  cursor: pointer;
+  background: #fafafa;
+  transition: border-color 0.2s;
+}
+
+#route-controls select:focus {
+  border-color: #2E75B6;
+  outline: none;
+}
+
+#arrow {
+  font-size: 18px;
+  color: #2E75B6;
+  font-weight: bold;
+}
+
+#route-btn {
+  padding: 8px 16px;
+  background: linear-gradient(135deg, #1F4E79, #2E75B6);
+  color: white;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  font-size: 13px;
+  font-weight: bold;
+  transition: transform 0.1s, box-shadow 0.1s;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+}
+
+#route-btn:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+}
+
+#clear-btn {
+  padding: 8px 12px;
+  background: #f5f5f5;
+  color: #666;
+  border: 2px solid #ddd;
+  border-radius: 8px;
+  cursor: pointer;
+  font-size: 13px;
+  transition: background 0.2s;
+}
+
+#clear-btn:hover {
+  background: #e0e0e0;
+}
+
+#locate-btn {
+  padding: 8px 14px;
+  background: #4CAF50;
+  color: white;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  font-size: 13px;
+  font-weight: bold;
+  transition: background 0.2s;
+}
+
+#locate-btn:hover {
+  background: #388E3C;
+}
+
+#locate-btn:disabled {
+  background: #9E9E9E;
+  cursor: not-allowed;
+}
+
+#info-box {
+  background: linear-gradient(135deg, #e8f5e9, #f1f8e9);
+  padding: 8px 16px;
+  border-left: 4px solid #4CAF50;
+  border-bottom: 1px solid #c8e6c9;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+#route-summary {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 13px;
+  font-weight: bold;
+}
+
+.route-point.from { color: #2E75B6; }
+.route-point.to { color: #F44336; }
+.route-arrow { color: #4CAF50; font-size: 16px; }
+
+#route-stats {
+  display: flex;
+  gap: 16px;
+  font-size: 13px;
+  color: #2d6a2d;
+}
+
+#legend {
+  position: absolute;
+  bottom: 30px;
+  right: 10px;
+  background: white;
+  border-radius: 10px;
+  padding: 10px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+  z-index: 1000;
+  font-size: 11px;
+}
+
+.legend-title {
+  font-weight: bold;
+  margin-bottom: 6px;
+  font-size: 12px;
+  color: #333;
+}
+
+.legend-item {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin: 3px 0;
+  color: #555;
+}
+
+.dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  display: inline-block;
+  border: 1px solid rgba(0,0,0,0.2);
+}
+
+#map {
+  flex: 1;
+  width: 100%;
+  position: relative;
+}
+
+/* Custom marker styles */
+.custom-marker {
+  background: transparent !important;
+  border: none !important;
+}
+
+/* Pulse animation for current location */
+@keyframes pulse {
+  0% { box-shadow: 0 0 0 0 rgba(33,150,243,0.4); }
+  70% { box-shadow: 0 0 0 10px rgba(33,150,243,0); }
+  100% { box-shadow: 0 0 0 0 rgba(33,150,243,0); }
+}
+
+/* Hide leaflet routing panel */
+.leaflet-routing-container {
+  display: none !important;
+}
+
+/* Responsive */
+@media (max-width: 600px) {
+  #route-controls { flex-direction: column; }
+  #route-controls select { min-width: 100%; }
+  #arrow { transform: rotate(90deg); }
+  #legend { display: none; }
+}
